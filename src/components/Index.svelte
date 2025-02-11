@@ -2,8 +2,8 @@
 	import { onMount, getContext } from "svelte";
 	import { base } from "$app/paths";
 	import { page } from "$app/stores";
-	import { shuffle } from "d3";
-	import { currentGame } from "$stores/misc.js";
+	import { range } from "d3";
+	import { LAST_GAME_INDEX, currentGame, skip, stats } from "$stores/misc.js";
 	import loadJson from "$utils/loadJson.js";
 	import Clues from "$components/Clues.svelte";
 	import Guess from "$components/Guess.svelte";
@@ -30,23 +30,38 @@
 		document.documentElement.style.setProperty(prop, val);
 	};
 
+	const getSkipped = () => {
+		const result = range(0, LAST_GAME_INDEX).findIndex((d) => {
+			const g = $stats.find((s) => s.game === d);
+			return !!g;
+		});
+		return result;
+	};
+
 	onMount(async () => {
 		window.addEventListener("resize", onResize);
 		onResize();
 
-		const rs = $page.url.search.split("rs=")[1];
-		const override = rs?.split("&")[0];
+		const id = $page.url.search.split("game=")[1];
+		$skip = $page.url.search.split("skip=")[1];
+		const override = id && !isNaN(+id);
 
 		const timestamp = Date.now();
 
+		// if coming from link
 		if (override) {
-			const id = decode(override);
-			$currentGame = { game: id };
+			$currentGame = { game: +id };
 			window.history.replaceState({}, "", `${window.location.pathname}`);
-		} else
-			$currentGame = await loadJson(
-				`${baseUrl}/current.json?version=${timestamp}`
-			);
+		} else {
+			// if return
+			if ($stats.length) {
+				const skipped = getSkipped();
+				const game = (skipped || 0) + 1;
+				$currentGame = { game };
+			} else {
+				$currentGame = { game: 0 };
+			}
+		}
 
 		const gameUrl = `${baseUrl}/games/${$currentGame.game}.json?version=${timestamp}`;
 		data = await loadJson(gameUrl);
@@ -62,7 +77,7 @@
 			<Guess {latitude} {longitude} />
 		</section>
 	{/if}
-	<About />
+	<About skip={$skip} />
 	<Stats {game} />
 </article>
 

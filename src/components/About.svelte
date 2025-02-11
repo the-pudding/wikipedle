@@ -1,24 +1,34 @@
 <script>
+	import { range } from "d3";
 	import { onMount, getContext } from "svelte";
-	import { firstTime, overlay } from "$stores/misc.js";
+	import { overlay, stats, currentGame } from "$stores/misc.js";
 	import Overlay from "$components/Overlay.svelte";
 	const copy = getContext("copy");
+
+	export let skip;
+
 	let hideThings;
 	let second;
 
 	$: if (hideThings && $overlay === undefined) hideThings = false;
 	$: closeText = hideThings ? "Start" : "Close";
+	$: index = ($currentGame?.game || 0) + 1;
+	$: postDay = `Next up is <strong>day ${index}.</strong>`;
+	$: if (skip) $overlay = undefined;
 
 	onMount(() => {
-		if ($firstTime) {
-			hideThings = $firstTime;
-			$overlay = "about";
-		}
-		$firstTime = false;
+		$overlay = "about";
+		hideThings = true;
 	});
 </script>
 
 <Overlay section="about" {closeText}>
+	{#if hideThings}
+		<p class="post">
+			{@html copy.post}.<br />{@html postDay}
+		</p>
+	{/if}
+
 	<h3>How to Play</h3>
 	<p>{@html copy.about}</p>
 
@@ -32,11 +42,6 @@
 		<h3>Data</h3>
 		<p>{@html copy.data}</p>
 	{/if}
-
-	<p>
-		{@html copy.credit}
-		{#if !hideThings}{@html copy.support}{/if}
-	</p>
 </Overlay>
 
 <style>
@@ -49,7 +54,7 @@
 	}
 
 	ul {
-		margin-bottom: 16px;
+		margin-bottom: 24px;
 		padding: 0;
 		display: flex;
 		flex-wrap: wrap;
@@ -63,5 +68,9 @@
 		margin-bottom: 2px;
 		text-align: center;
 		line-height: 1.2;
+	}
+
+	.post {
+		margin-top: 16px;
 	}
 </style>

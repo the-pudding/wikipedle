@@ -22,12 +22,10 @@
 	let firstClick;
 
 	$: message = $gameOver
-		? `Best guess: ${formatGuessDistance($best)} from the location. ${
-				$viewport.width > 600 ? "See ya tomorrow!" : ""
-		  }`
+		? `Best guess: ${formatGuessDistance($best)} from the location.`
 		: delay
-		? "The location is somewehere in this area"
-		: "Place pin on map to guess";
+			? "The location is somewehere in this area"
+			: "Place pin on map to guess";
 	$: showMessage = $gameOver || !placed;
 	$: showGuessPrompt = placed;
 	$: isFancy = !firstClick ? "btn-fancy" : "";

@@ -1,6 +1,6 @@
 <script>
 	import { range, mean, max, rollups } from "d3";
-	import { onMount, getContext } from "svelte";
+	import { getContext } from "svelte";
 	import Overlay from "$components/Overlay.svelte";
 	import { THRESHOLDS, stats, gameOver, best } from "$stores/misc.js";
 	const copy = getContext("copy");
@@ -35,14 +35,14 @@
 				distanceThresholds,
 				(v) => v.length,
 				(d) => d
-		  ).map(([threshold, count]) => ({ threshold, count }))
+			).map(([threshold, count]) => ({ threshold, count }))
 		: [];
 	$: maxCount = max(distribution, (d) => d.count);
 
-	onMount(() => {
-		if (window.location.href.includes("localhost"))
-			localStorage.removeItem("pudding_location_game_stats");
-	});
+	// onMount(() => {
+	// 	if (window.location.href.includes("localhost"))
+	// 		localStorage.removeItem("pudding_location_game_stats");
+	// });
 </script>
 
 <Overlay section="stats">

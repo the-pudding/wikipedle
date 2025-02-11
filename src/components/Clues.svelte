@@ -9,11 +9,12 @@
 	import mq from "$stores/mq.js";
 	import {
 		NUM_GUESSES,
+		LAST_GAME_INDEX,
 		clueIndex,
 		gameOver,
-		currentGame
+		currentGame,
+		stats
 	} from "$stores/misc.js";
-	import { encode } from "$utils/encrypt.js";
 	import generateId from "$utils/generateId.js";
 
 	export let images;
@@ -33,22 +34,24 @@
 	$: right =
 		current >= $clueIndex || current === NUM_GUESSES - 1 ? "right" : null;
 	$: disable = [left, right].filter((d) => d);
-	$: id = encode($currentGame.game - 1);
-	$: uuid = generateId(4);
-	$: upc = generateId(5);
-	$: href = `/?uuid=${uuid}v&rs=${id}&upc=${upc}`;
-	$: prevLink = `(<a target="_self" href="${base}${href}">prev</a>)`;
+	$: prev = $currentGame.game - 1;
+	$: next = $currentGame.game + 1;
+	$: prevLink = `<a target="_self" href="${base}/?skip=true&game=${prev}">prev</a>`;
+	$: nextLink = `<a target="_self" href="${base}/?skip=true&game=${next}">next</a>`;
+	$: check = $stats.find((s) => s.game === $currentGame.game);
 </script>
 
 <div class="wrapper">
 	<div class="info">
-		<!-- <p class="tagline">{tagline}</p> -->
+		<p class="links">
+			{#if $currentGame?.game > 0}{@html prevLink}{/if}
+			{#if $currentGame?.game < LAST_GAME_INDEX}{@html nextLink}{/if}
+		</p>
 		<p class="current">
-			<strong
-				>#{$currentGame?.game + 1}
-				{#if $currentGame.game > 0}{@html prevLink}{/if}</strong
-			>
-			<!-- {$currentGame?.date} -->
+			<strong>
+				#{$currentGame?.game + 1}
+				{#if check}<span class="check">(played)</span>{/if}
+			</strong>
 		</p>
 		<p class="counter">{current + 1} of {count}</p>
 	</div>
@@ -95,9 +98,28 @@
 		line-height: 1;
 		text-align: center;
 		font-size: var(--14px);
+		width: 33.33%;
+	}
+
+	.info p:first-of-type {
+		text-align: left;
+	}
+
+	.info p:last-of-type {
+		text-align: right;
 	}
 
 	.images {
 		flex: 1;
+	}
+
+	.current strong {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.check {
+		margin-left: 4px;
+		color: var(--sequential-0);
 	}
 </style>
